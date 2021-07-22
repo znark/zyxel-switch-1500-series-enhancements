@@ -2,86 +2,101 @@
 
 ## Overview
 
-This document contains some notes about the possibility of modifying the firmware of the *ZyXEL Switch 1500 Series* Ethernet switches.
+This document holds some notes about the possibility of modifying the firmware of the *ZyXEL Switch 1500 Series* Ethernet switches.
 
-Some enhancements which are now implemented as browser-based userscripts could be incorporated into the firmware image itself and flashed onto a device. This would require finding a sufficiently easy and safe way to modify, repackage, and flash a new firmware image onto the device.
+Some enhancements which are now implemented as browser-based userscripts could be incorporated into the firmware image itself and flashed onto the device. This would require finding a sufficiently easy and safe way to modify, repackage, and flash a new firmware image onto the device.
 
 ## Architecture
 
 ### System chip (ASIC, SoC)
 
-*ZyXEL Switch 1500 Series* switches appear to be based on Broadcom Ethernet Switch SoCs and MIPS CPU cores. 
+The *ZyXEL Switch 1500 Series* switches appear to be based on Broadcom Ethernet Switch SoCs and MIPS CPU cores.
 
-Information gathered from firmware update files suggests the SoCs used are...
+Manufacturer’s firmware update packages contain information that suggest the SoCs used are...
 
 - [BCM5348](https://www.broadcom.com/products/ethernet-connectivity/switching/roboswitch/bcm5348) for the ES-1528 and the ES-1552
 
 - [BCM53718](https://www.alldatasheet.com/datasheet-pdf/pdf/175918/BOARDCOM/BCM53718.html) for the GS-1524 and the GS-1548
 
-...or related SoCs belonging to these families, at least. (Not confirmed yet.)
+...or related SoCs belonging to these families. (Not confirmed yet.)
 
 ### Console port (serial port)
 
-A console port very likely exists on the PCB even though none of the models in the product family officially support one or make it externally accessible. (Not confirmed yet.) 
+[A TTL-level console port](https://openwrt.org/docs/techref/hardware/port.serial) very likely exists on the PCB even though none of the models in the product family officially support one or make it externally accessible. (Not confirmed yet.)
 
 ## Firmware
 
 ### Bootloader
 
-The official firmware upgrade instructions available on the manufacturer’s site suggest the switches in this product family use Broadcom’s [CFE](https://en.wikipedia.org/wiki/Common_Firmware_Environment) (Common Firmware Environment) as their bootloader.
+The official firmware upgrade instructions available on the manufacturer’s site contain a PDF document which suggests the switches in this product family use Broadcom [CFE](https://en.wikipedia.org/wiki/Common_Firmware_Environment) (Common Firmware Environment) as their bootloader.
 
 The OpenWrt project maintains [some practical information](https://oldwiki.archive.openwrt.org/doc/techref/bootloader/cfe) about this bootloader type.
 
 ### Operating system
 
-Firmware appears to be based on [eCos](https://en.wikipedia.org/wiki/ECos), the “Embedded Configurable Operating System”, which is an open-source real-time operating system.
+The firmware appears to be based on [eCos](https://en.wikipedia.org/wiki/ECos), or the “Embedded Configurable Operating System”, which is an open-source real-time operating system.
 
 ### Web-based management UI
 
-- The switch has an IP address and responds on VLAN 1 from the standard HTTP port (TCP/80).
+- The switch has an IP address on VLAN 1 and responds from the standard HTTP port (TCP/80), which provides the primary management interface.
 - HTTPS is not implemented.
 
-The web-based management UI is the primary way of managing the switch.
-
-Studying the web page content inside the firmware image suggests many of the page templates have originally been designed using Microsoft FrontPage (!).   
+The header strings found in the HTML templates stored inside the firmware image suggest many of them have originally been designed using Microsoft FrontPage (!).
 
 ### Command-line interface
 
-- The switch has an IP address and responds on VLAN 1 from the standard telnet port (TCP/23).
+- The switch has an IP address on VLAN 1 and responds from the standard telnet port (TCP/23).
 - SSH is not implemented.
 
 The offered command-line interface is very rudimentary and does not give access to advanced management functionality. (It is possible there are more advanced hidden modes and commands that can be activated via an undocumented command or control code sequence.)
 
 Studying the strings in the firmware image suggests it includes some Broadcom or eCos-specific hidden command-line interfaces with more advanced commands. Whether these are actually accessible via the telnet interface is currently not known.
 
+### Other interfaces
+
+Other interfaces / protocols the documentation mentions are:
+
+- (BSD) syslog-compatible logging over UDP
+- MIBs
+  - RFC 1213 SNMP MIB II
+    - MIB II - System
+    - MIB II - Interface
+  - RFC 1398 MIB - Ether-like
+  - RFC 1157 SNMP v1
+  - RFC 1155 SMI
+  - RFC 2674 SNMPv2, SNMPv2c
+  - RFC 2819 RMON (“RMON-Lite”)
+    - Group 1 (Statistics)
+    - Group 2 (History)
+    - Group 3 (Alarm)
+    - Group 4 (Event)
+
 ### Firmware upgrades
 
-Firmware upgrade files are available on the vendor site for each of the models but the latest ones are from 2007. 
+Firmware upgrade files are available on the manufacturer’s site for each of the models. The last official updates are from 2007.
 
-A firmware upgrade can be performed via the web-based management UI.
-
-However, the included PDF files seem to refer to a console port and TFTP-based update procedure — it is just that these switches do not have an externally-accessible console port.
+A firmware upgrade can be performed via the web-based management UI. However, the included PDF files seem to refer to a console port, CFE and TFTP-based update procedure — it is just that these switches do not have an externally-accessible console port.
 
 ### Firmware update file format
 
-The format of the firmware `.bin` file appears to be simple [gzip-compressed](https://en.wikipedia.org/wiki/Gzip) ELF image. 
+The format of the firmware `.bin` file appears to be simple [gzip-compressed](https://en.wikipedia.org/wiki/Gzip) ELF image.
 
-The standard header of the gzip file (as per [RFC 1952](https://datatracker.ietf.org/doc/html/rfc1952)) includes some unusual information though:
+The standard header of the gzip file (as defined in [RFC 1952](https://datatracker.ietf.org/doc/html/rfc1952)) includes some unusual information though:
 
 - The gzip header field `FNAME` stores the original name of the uncompressed image. This file name is not the same as the external file name. The name embedded in the gzip header contains a reference to the SoC type and to the ZyXEL firmware versioning scheme.
 
   Examples of embedded firmware image names from the latest firmware upgrade packages:
 
-  - ES-1528: `SSS-BCM5348-V1.12(ARD.3)` 
+  - ES-1528: `SSS-BCM5348-V1.12(ARD.3)`
   - ES-1552: `SSS-BCM5348-V1.12\(ARS.2\)`
   - GS-1524: `SSS-BCM53718-V1.12\(AYX.0\)C0`
   - GS-1548: `SSS-BCM53718-V1.12\(AYX.0\)C0`
 
 - The gzip `MTIME` field contains a timestamp from 2007.
 
-- The rarely-used gzip `FCOMMENT` field is also included, and seems to serve a special purpose. It contains an ASCII-format hexadecimal identifier, encoding six bytes.
+- The rarely-used gzip `FCOMMENT` field is also included, and seems to serve a special purpose. It contains an ASCII-encoded hexadecimal identifier carrying six bytes of data.
 
-  **Example:** `000FF8DFC1C1`. 
+  **Example:** `000FF8DFC1C1`
 
   This is possibly...
 
@@ -89,7 +104,7 @@ The standard header of the gzip file (as per [RFC 1952](https://datatracker.ietf
   - a CRC of some sort, or
   - a binary version field of some kind.
 
-  When studying older firmware releases, the five leftmost hexadecimal digits (nybbles) seem to remain fixed for a particular type of a device while the remaining seven digits on the right change from one firmware file to the next.
+  When studying older firmware releases, the five leftmost hexadecimal digits (nybbles) seem to remain fixed for a particular device/model type while the remaining seven digits on the right change from one firmware file to the next.
 
   It seems likely that the firmware upgrade logic in the web-based management UI, at least, would use this field to validate the firmware file. (Not confirmed yet.)
 
@@ -100,18 +115,18 @@ The standard header of the gzip file (as per [RFC 1952](https://datatracker.ietf
 ### Analyzing gzip files
 
 - The lesser-used (or seen) gzip header fields mentioned above can be inspected e.g. by utilizing the C code in this simple project...
-  
-- [tiwaana/c-gzip](tiwaana/c-gzip)
-  
-  ... although it does not print out all the information by default (you need to add some printf calls by yourself).
-  
+
+  - [tiwaana/c-gzip](tiwaana/c-gzip)
+
+  ... although it does not print out all the information by default (you need to add some `printf` calls by yourself).
+
 - [Python’s gzip implementation](https://docs.python.org/3/library/gzip.html) does not support the `FCOMMENT` field outright (just skips it) but it could be patched to support it quite easily.
 
-- Perl’s [IO::Compress::Gzip library](https://perldoc.perl.org/IO::Compress::Gzip) apparently does support the `FCOMMENT` field.
+- Perl’s [IO::Compress::Gzip](https://perldoc.perl.org/IO::Compress::Gzip) apparently does support the `FCOMMENT` field.
 
 ### General inspection of the uncompressed firmware
 
-Standard tools, such as `strings` and `binwalk --signature` spit out a lot of interesting information about an uncompressed firmware image.
+Standard tools such as `strings` and `binwalk --signature` spit out a lot of interesting information about an uncompressed firmware image.
 
 #### Binwalk
 

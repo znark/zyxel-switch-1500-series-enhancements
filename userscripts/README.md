@@ -2,7 +2,7 @@
 
 ## Overview
 
-The enhancements in this directory are implemented as [userscripts](https://en.wikipedia.org/wiki/Userscript). They must be installed in the browser that you use to access the web-based management UI of the switch.
+The enhancements in this directory are implemented as [userscripts](https://en.wikipedia.org/wiki/Userscript). They must be installed in the browser that you use to access the web-based management UI of the targeted switch.
 
 Userscripts are JavaScript snippets which modify the operation of a web page or a web site that they target. They run in your browser and auto-launch based on user-configurable URL patterns.
 
@@ -14,15 +14,15 @@ Userscripts are JavaScript snippets which modify the operation of a web page or 
 
 ### Install a userscript manager
 
-In most browsers, the only feasible way of managing userscripts is installing an add-on or extension. The recommend go-to choice  is *[TamperMonkey](https://www.tampermonkey.net/)*, which is available for all major browsers.
+In most browsers, the only feasible way of managing userscripts is installing an add-on or extension made for the purpose. The recommend go-to choice  is *[TamperMonkey](https://www.tampermonkey.net/)*, which is available for all major browsers.
 
-*TamperMonkey* contains a built-in code editor which allows viewing and modifying the code of any scripts you install.
+> **TIP:** *TamperMonkey* has a built-in code editor which allows viewing and modifying the source code of any scripts you install. This will come handy when configuring the script for your particular environment.
 
 ### Install the desired script
 
 1. Once *TamperMonkey* has been installed, click on its icon in the toolbar and choose the *Dashboard* option in the menu that will open.
 
-   > **NOTE:** *Firefox* installs the *TamperMonkey* icon directly on its toolbar. *Chrome* lists *TamperMonkey* in a submenu which you can open by clicking on the *Extensions* toolbar button (shaped like a jigsaw puzzle piece). 
+   > **NOTE:** *Firefox* installs the *TamperMonkey* icon directly on its toolbar. *Chrome* lists *TamperMonkey* in a submenu which you can open by clicking on the *Extensions* toolbar button (shaped like a jigsaw puzzle piece).
 
 2. Navigate to the *Utilities* tab,  in the *File* section, and click on the *Import: Choose File* button. A file dialog will open, allowing you to browse the local file system for installable userscripts.
 
@@ -46,7 +46,7 @@ The usercripts in this repository target the switch at its default factory addre
 
 4. The code begins with a comment block containing `UserScript` metadata. This block holds one or more `@match` imperatives which control the URLs that will activate the script.
 
-   The `UserScript` metadata format allows defining multiple `@match` imperatives. You must generally add a separate `@match` imperative for each switch you want to apply the script to. 
+   The `UserScript` metadata format allows defining multiple `@match` imperatives. You must generally add a separate `@match` imperative for each switch you want to apply the script to.
 
    > **NOTE:** Make sure any `@match` imperative you add or modify begins with the comment marker (`//`) and is placed between the start and end tags of the `UserScript` metadata block. Otherwise it will not work.
 
@@ -79,10 +79,10 @@ The usercripts in this repository target the switch at its default factory addre
 
    > **NOTE:** The trailing part of the URL — shown above as `showvlan.cgi?port=*` — depends on the actual script in question. Follow the format used in the script itself to ensure it will be activated at the intended URL path.
 
-   You can find the full syntax for the `@match` imperative [here](https://developer.chrome.com/docs/extensions/mv2/match_patterns/). 
+   You can find the full syntax for the `@match` imperative [here](https://developer.chrome.com/docs/extensions/mv2/match_patterns/).
 
 5. Once you have made the necessary changes, make sure to save the modified script (with Ctrl+S) so that the changes will be stored and used for activating the script.
 
-6. Navigate to the web management interface of the targeted switch and try the user interface both with the script enabled and disabled. (The *Installed Userscripts* tab allows enabling or disabling individual scripts with a simple toggle button.) 
+6. Navigate to the web management interface of the targeted switch and try the user interface both with the script enabled and disabled. (The *Installed Userscripts* tab allows enabling or disabling individual scripts with a simple toggle button.)
 
 If you encounter any issues, double-check the address used in the browser’s address bar and the `@match` imperatives configured in the script.
